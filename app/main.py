@@ -18,7 +18,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -38,6 +38,18 @@ def root_info():
             "inspect": "/inspect",
             "batch_inspect": "/batch-inspect"
         }
+    }
+
+
+@app.get("/health", tags=["Health"])
+def health():
+    """Direct root health endpoint returning status, version, and active config."""
+    return {
+        "status": "ok",
+        "service": settings.app_name,
+        "version": settings.version,
+        "low_threshold": settings.low_threshold,
+        "high_threshold": settings.high_threshold,
     }
 
 

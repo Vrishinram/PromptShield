@@ -42,14 +42,8 @@ venv.bak/
 # Testing & Coverage
 .pytest_cache/
 .coverage
-.coverage.*
+*.log
 htmlcov/
-.tox/
-.nox/
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
 
 # IDE / Editor artifacts
 .vscode/
@@ -58,6 +52,7 @@ coverage.xml
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
 # Streamlit
 .streamlit/

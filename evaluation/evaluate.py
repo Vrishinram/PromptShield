@@ -1,10 +1,17 @@
 """Batch evaluation and benchmark scoring script for PromptShield."""
 
 import json
+import os
+import sys
 import time
 from pathlib import Path
 from typing import List, Dict, Any
 import numpy as np
+
+# Ensure project root is in sys.path
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
+
 from app.core.engine import engine
 
 
@@ -13,7 +20,7 @@ def run_benchmark(dataset_path: Path = None) -> Dict[str, Any]:
     Run evaluation against the dataset and compute key safety metrics.
     """
     if dataset_path is None:
-        dataset_path = Path(__file__).resolve().parent.parent / "data" / "eval_dataset.json"
+        dataset_path = BASE_DIR / "data" / "eval_dataset.json"
 
     with open(dataset_path, "r", encoding="utf-8") as f:
         dataset: List[Dict[str, Any]] = json.load(f)
