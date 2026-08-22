@@ -29,6 +29,33 @@ LEET_DICT = {
     "|": "l",
 }
 
+# Common Cyrillic & Greek homoglyphs used in evasion
+HOMOGLYPH_DICT = {
+    "а": "a", "А": "A",
+    "с": "c", "С": "C",
+    "е": "e", "Е": "E",
+    "о": "o", "О": "O",
+    "р": "p", "Р": "P",
+    "ѕ": "s", "Ѕ": "S",
+    "х": "x", "Х": "X",
+    "у": "y", "У": "Y",
+    "і": "i", "І": "I",
+    "ј": "j", "Ј": "J",
+    "ԁ": "d", "Ԃ": "D",
+    "ԛ": "q", "Ԛ": "Q",
+    "ԝ": "w", "Ԝ": "W",
+    # Greek
+    "α": "a", "Α": "A",
+    "β": "b", "Β": "B",
+    "ε": "e", "Ε": "E",
+    "ι": "i", "Ι": "I",
+    "κ": "k", "Κ": "K",
+    "ο": "o", "Ο": "O",
+    "ρ": "p", "Ρ": "P",
+    "τ": "t", "Τ": "T",
+    "υ": "u", "Υ": "Y",
+}
+
 
 def strip_zero_width(text: str) -> Tuple[str, int]:
     """Remove invisible zero-width unicode characters. Returns (clean_text, count_removed)."""
@@ -43,8 +70,21 @@ def strip_zero_width(text: str) -> Tuple[str, int]:
 
 
 def normalize_unicode(text: str) -> str:
-    """Normalize unicode to NFKC to resolve homoglyphs and styled fonts (e.g. bold mathematical unicode)."""
+    """Normalize unicode to NFKC to resolve styled fonts and mathematical unicode symbols."""
     return unicodedata.normalize("NFKC", text)
+
+
+def normalize_homoglyphs(text: str) -> Tuple[str, int]:
+    """Resolve Cyrillic/Greek homoglyphs mapped to ASCII equivalents."""
+    count = 0
+    clean = []
+    for ch in text:
+        if ch in HOMOGLYPH_DICT:
+            count += 1
+            clean.append(HOMOGLYPH_DICT[ch])
+        else:
+            clean.append(ch)
+    return "".join(clean), count
 
 
 def normalize_leetspeak(text: str) -> str:
@@ -65,7 +105,6 @@ def extract_base64_payloads(text: str, min_length: int = 16) -> List[Tuple[str, 
     Search for potential Base64 encoded strings within the text and attempt decoding.
     Returns list of (encoded_substring, decoded_utf8_string).
     """
-    # Regex matching base64 strings with optional padding
     b64_pattern = re.compile(r"(?:[A-Za-z0-9+/]{4}){4,}(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?")
     results = []
 
@@ -75,9 +114,7 @@ def extract_base64_payloads(text: str, min_length: int = 16) -> List[Tuple[str, 
             continue
         try:
             decoded_bytes = base64.b64decode(candidate, validate=True)
-            # Try to decode as UTF-8
             decoded_str = decoded_bytes.decode("utf-8")
-            # Check if decoded string is mostly printable ASCII / text
             if sum(1 for c in decoded_str if c.isprintable() or c.isspace()) / max(len(decoded_str), 1) > 0.8:
                 results.append((candidate, decoded_str))
         except Exception:
@@ -88,15 +125,18 @@ def extract_base64_payloads(text: str, min_length: int = 16) -> List[Tuple[str, 
 
 def clean_text_for_inspection(text: str) -> Tuple[str, dict]:
     """
-    Full text cleaning pipeline.
+    Full text cleaning pipeline with NFKC normalization, zero-width stripping,
+    and homoglyph translation.
     Returns (normalized_text, metadata_dict)
     """
     norm_unicode = normalize_unicode(text)
     clean_text, zw_count = strip_zero_width(norm_unicode)
+    clean_text, homoglyph_count = normalize_homoglyphs(clean_text)
     b64_payloads = extract_base64_payloads(clean_text)
 
     metadata = {
         "zero_width_removed": zw_count,
+        "homoglyphs_resolved": homoglyph_count,
         "base64_found": len(b64_payloads) > 0,
         "base64_payloads": b64_payloads,
     }
