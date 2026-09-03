@@ -213,3 +213,13 @@ PromptShield/
 ## 📜 License
 
 MIT License. Free for open-source and enterprise usage.
+
+
+---
+
+## 🌟 Star History & Support
+
+If you find **PromptShield** useful or are building with it, please give it a star ⭐!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Vrishinram/PromptShield&type=Date)](https://star-history.com/#Vrishinram/PromptShield&Date)
+
